@@ -5,18 +5,21 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CrimeListFragment extends Fragment {
+    private static final String sTAG = "CRIME_LIST_FRAGMENT";
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
+    private UUID mLastCrimeChanged = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -45,7 +48,19 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecyclerView.setAdapter(mAdapter);
         } else {
-            mAdapter.notifyDataSetChanged();
+            if (mLastCrimeChanged == null){
+                mAdapter.notifyDataSetChanged();
+            }
+            else {
+                int id = 0;
+                for (Crime crime: mAdapter.mCrimes){
+                    if (crime.getId().equals(mLastCrimeChanged))
+                        break;
+                    id++;
+                }
+                mAdapter.notifyItemChanged(id);
+            }
+
         }
     }
 
@@ -77,7 +92,11 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            Intent intent = CrimeActivity.newIntent(getActivity(), mCrime.getId());
+            UUID crimeId = mCrime.getId();
+            mLastCrimeChanged = crimeId;
+            Intent intent = CrimeActivity.newIntent(getActivity(), crimeId);
+
+            Log.d(sTAG, "Start CrimeActivity");
             startActivity(intent);
         }
     }
